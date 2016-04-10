@@ -43,6 +43,119 @@
     $$.sbgn.drawText(context, textProp, false);
   };
 
+  $$.sbgn.getAlterationData = function(node){
+    var map = {
+      'PERCENT_CNA_AMPLIFIED': 0.1,
+      'PERCENT_CNA_HOMOZYGOUSLY_DELETED': 0.2,
+      'PERCENT_CNA_GAINED': 0.2,
+      'PERCENT_CNA_HEMIZYGOUSLY_DELETED': 0.2,
+      'PERCENT_MUTATED': 0.4,
+      'PERCENT_MRNA_WAY_UP': 0.3,
+      'PERCENT_MRNA_WAY_DOWN': 0.2
+    };
+    
+    return map;
+  };
+  
+  $$.sbgn.alterationEllipseFixedDimension = 20;
+
+  $$.sbgn.drawAlterationEllipse = function(centerX, centerY, width, height, startAngle, endAngle, direction, color, context) {
+    context.beginPath();
+    context.ellipse(centerX, centerY, width, height, 0, startAngle, endAngle, direction);
+    context.lineTo(centerX, centerY);
+    context.closePath();
+    context.fillStyle = color;
+    context.fill();
+    context.stroke();
+  };
+
+  $$.sbgn.drawCopyNumber = function(context, node, alterationMap){
+    var lastAngle = -Math.PI;
+    var centerX = node.position('x');
+    var centerY = node.position('y') - node.height() / 2;
+    var width = node.width() / 2 - window.cyNodeShapes["macromolecule"].multimerPadding;
+    var height = $$.sbgn.alterationEllipseFixedDimension;
+    var areaInDegrees;
+    
+    //Draw amplification data
+    areaInDegrees = (alterationMap['PERCENT_CNA_AMPLIFIED'] === undefined) ?
+                                0 : alterationMap['PERCENT_CNA_AMPLIFIED'] * Math.PI;
+                                
+    $$.sbgn.drawAlterationEllipse(centerX, centerY, width, height, lastAngle, lastAngle + areaInDegrees, 0, "rgba(254,80,51,0.8)", context);
+    //update the last angle
+    lastAngle = lastAngle + areaInDegrees;
+    
+    //draw homozygous deletion data
+    areaInDegrees = (alterationMap['PERCENT_CNA_HOMOZYGOUSLY_DELETED'] === undefined) ?
+                                0 : alterationMap['PERCENT_CNA_HOMOZYGOUSLY_DELETED'] * Math.PI;
+    $$.sbgn.drawAlterationEllipse(centerX, centerY, width, height, lastAngle, lastAngle + areaInDegrees, 0, "rgba(53,91,255,0.8)", context);
+    //update the last angle
+    lastAngle = lastAngle + areaInDegrees;
+    
+    //draw gain data
+    areaInDegrees = (alterationMap['PERCENT_CNA_GAINED'] === undefined) ?
+                                0 : alterationMap['PERCENT_CNA_GAINED'] * Math.PI;
+    $$.sbgn.drawAlterationEllipse(centerX, centerY, width, height, lastAngle, lastAngle + areaInDegrees, 0, "rgba(255,208,214,0.8)", context);
+    //update the last angle
+    lastAngle = lastAngle + areaInDegrees;
+    
+    //draw hemizygous deletion data
+    areaInDegrees = (alterationMap['PERCENT_CNA_HEMIZYGOUSLY_DELETED'] === undefined) ?
+                                0 : alterationMap['PERCENT_CNA_HEMIZYGOUSLY_DELETED'] * Math.PI;
+    context.beginPath();
+    $$.sbgn.drawAlterationEllipse(centerX, centerY, width, height, lastAngle, lastAngle + areaInDegrees, 0, "rgba(158,223,224,0.8)", context);
+    //update the last angle
+    lastAngle = lastAngle + areaInDegrees;
+    
+    //draw the remaining field
+    $$.sbgn.drawAlterationEllipse(centerX, centerY, width, height, lastAngle, 0, 0, "rgba(255,255,255,0.3)", context);
+  };
+  
+  $$.sbgn.drawmRNAExpression = function(context, node, alterationMap){
+    var lastAngle = -Math.PI/2;
+    var centerX = node.position('x') - node.width() / 2;
+    var centerY = node.position('y');
+    var width = $$.sbgn.alterationEllipseFixedDimension;
+    var height = node.height() / 2 - window.cyNodeShapes["macromolecule"].multimerPadding;
+    var areaInDegrees;
+    
+    //Draw mrna upregulated data
+    areaInDegrees = (alterationMap['PERCENT_MRNA_WAY_UP'] === undefined) ?
+                                0 : alterationMap['PERCENT_MRNA_WAY_UP'] * Math.PI;
+    $$.sbgn.drawAlterationEllipse(centerX, centerY, width, height, lastAngle, lastAngle - areaInDegrees, 1, "rgba(250,185,182,0.8)", context);
+    //update the last angle
+    lastAngle = lastAngle - areaInDegrees;
+    
+    //draw mrna down regulated data
+    areaInDegrees = (alterationMap['PERCENT_MRNA_WAY_DOWN'] === undefined) ?
+                                0 : alterationMap['PERCENT_MRNA_WAY_DOWN'] * Math.PI;
+    $$.sbgn.drawAlterationEllipse(centerX, centerY, width, height, lastAngle, lastAngle - areaInDegrees, 1, "rgba(147,187,221,0.8)", context);
+    //update the last angle
+    lastAngle = lastAngle - areaInDegrees;
+    
+    //draw the remaining field
+    $$.sbgn.drawAlterationEllipse(centerX, centerY, width, height, lastAngle, -3/2*Math.PI, 1, "rgba(255,255,255,0.3)", context);
+  };
+  
+  $$.sbgn.drawMutation = function(context, node, alterationMap){
+    var lastAngle = -Math.PI / 2;
+    var centerX = node.position('x') + node.width() / 2;
+    var centerY = node.position('y');
+    var width = $$.sbgn.alterationEllipseFixedDimension;
+    var height = node.height() / 2 - window.cyNodeShapes["macromolecule"].multimerPadding;
+    var areaInDegrees;
+    
+    //Draw amplification data
+    areaInDegrees = (alterationMap['PERCENT_MUTATED'] === undefined) ?
+                                0 : alterationMap['PERCENT_MUTATED'] * Math.PI;
+    $$.sbgn.drawAlterationEllipse(centerX, centerY, width, height, lastAngle, lastAngle + areaInDegrees, 0, "rgba(50,161,50,0.8)", context);
+    //update the last angle
+    lastAngle = lastAngle + areaInDegrees;
+    
+    //draw the remaining field
+    $$.sbgn.drawAlterationEllipse(centerX, centerY, width, height, lastAngle, Math.PI / 2, 0, "rgba(255,255,255,0.3)", context);
+  };
+
   $$.sbgn.fillBendShapes = function(edge, context){
     var segpts = edge._private.rscratch.segpts;
     var radius = $$.sbgn.getBendShapesLenght(edge);
@@ -1059,8 +1172,17 @@
         var oldStyle = context.fillStyle;
         $$.sbgn.forceOpacityToOne(node, context);
         $$.sbgn.drawStateAndInfos(node, context, centerX, centerY);
+        
+        //Draw alteration data if the node is selected
+        if(node.selected() === true){
+          var alterationMap = $$.sbgn.getAlterationData(node);
+          $$.sbgn.drawCopyNumber(context, node, alterationMap);
+          $$.sbgn.drawmRNAExpression(context, node, alterationMap);
+          $$.sbgn.drawMutation(context, node, alterationMap);
+        }
+       
         context.fillStyle = oldStyle;
-
+        
 //        var nodeProp = {'label': label, 'centerX': centerX, 'centerY': centerY,
 //          'opacity': node._private.style['text-opacity'].value, 'width': node.width(), 'height': node.height()};
       },
