@@ -42,20 +42,6 @@
     textProp.font = "9px Arial";
     $$.sbgn.drawText(context, textProp, false);
   };
-
-  $$.sbgn.getAlterationData = function(node){
-    var map = {
-      'PERCENT_CNA_AMPLIFIED': 0.1,
-      'PERCENT_CNA_HOMOZYGOUSLY_DELETED': 0.2,
-      'PERCENT_CNA_GAINED': 0.2,
-      'PERCENT_CNA_HEMIZYGOUSLY_DELETED': 0.2,
-      'PERCENT_MUTATED': 0.4,
-      'PERCENT_MRNA_WAY_UP': 0.3,
-      'PERCENT_MRNA_WAY_DOWN': 0.2
-    };
-    
-    return map;
-  };
   
   $$.sbgn.alterationEllipseFixedDimension = 20;
 
@@ -1175,7 +1161,7 @@
         
         //Draw alteration data if the node is selected
         if(node.selected() === true){
-          var alterationMap = $$.sbgn.getAlterationData(node);
+          var alterationMap = getAlterationData(node);
           $$.sbgn.drawCopyNumber(context, node, alterationMap);
           $$.sbgn.drawmRNAExpression(context, node, alterationMap);
           $$.sbgn.drawMutation(context, node, alterationMap);

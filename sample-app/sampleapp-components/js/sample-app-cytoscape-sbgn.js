@@ -3,6 +3,34 @@ String.prototype.endsWith = function (suffix) {
   return this.indexOf(suffix, this.length - suffix.length) !== -1;
 };
 
+var getValueByRatio = function(num, numLow, numHigh, colorNum1, colorNum2)
+{
+  return ((((num - numLow) / (numHigh - numLow)) * (colorNum2 - colorNum1)) + colorNum1)
+};
+
+var getAlterationData = function(node){
+  if(node._private.data.alterationData){
+    return node._private.data.alterationData;
+  }
+
+  var percentAltered = Math.random();
+  
+  var map = {
+    'PERCENT_CNA_AMPLIFIED': 0.1,
+    'PERCENT_CNA_HOMOZYGOUSLY_DELETED': 0.2,
+    'PERCENT_CNA_GAINED': 0.2,
+    'PERCENT_CNA_HEMIZYGOUSLY_DELETED': 0.2,
+    'PERCENT_MUTATED': 0.4,
+    'PERCENT_MRNA_WAY_UP': 0.3,
+    'PERCENT_MRNA_WAY_DOWN': 0.2,
+    'PERCENT_ALTERED': percentAltered
+  };
+
+  node._private.data.alterationData = map;
+
+  return map;
+};
+
 function dynamicResize()
 {
 
@@ -1058,6 +1086,61 @@ var sbgnStyleSheet = cytoscape.stylesheet()
           },
           'content': function(ele){
             return getElementContent(ele);
+          }
+        })
+        .selector("node[sbgnclass='macromolecule']")
+        .css({
+          'background-color': function(node) {
+            var percentAltered = getAlterationData(node).PERCENT_ALTERED;
+            if (percentAltered === undefined)
+            {
+              return "#ffffff";
+            }
+
+            var value = percentAltered*100;
+            var high = 100;
+            var low = 0;
+
+            var highCRed = 255;
+            var highCGreen = 0;
+            var highCBlue = 0;
+
+            var lowCRed = 255;
+            var lowCGreen = 255;
+            var lowCBlue = 255;
+
+            // transform percentage value by using the formula:
+            // y = 0.000166377 x^3  +  -0.0380704 x^2  +  3.14277x
+            // instead of linear scaling, we use polynomial scaling to better
+            // emphasize lower alteration frequencies
+            value = (0.000166377 * value * value * value) -
+            (0.0380704 * value * value) +
+            (3.14277 * value);
+
+            // check boundary values
+            if (value > 100)
+            {
+                value = 100;
+            }
+            else if (value < 0)
+            {
+                value = 0;
+            }
+
+            if (value >= high)
+            {
+                return "rgb"+"("+highCRed +"," + highCGreen + "," + highCBlue + ")";
+            }
+            else if (value > low)
+            {
+                return "rgb"+"("+getValueByRatio(value, low, high, lowCRed, highCRed) + "," +
+                getValueByRatio(value, low, high, lowCGreen, highCGreen) + "," +
+                getValueByRatio(value, low, high, lowCBlue, highCBlue) + ")";
+            }
+            else
+            {
+                return "rgb"+"("+lowCRed +"," + lowCGreen + "," + lowCBlue +")";
+            }
           }
         })
         .selector("node[sbgnclass='compartment']")
